@@ -1,11 +1,12 @@
 import os
 
-from typing import Union
+from typing import Annotated, Union
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Request
+from fastapi import Depends, FastAPI, Request
 from dotenv import load_dotenv
 
 from model import fake_answer_to_everything_ml_model
+from auth import TokenData, get_current_user
 
 # load env vars
 load_dotenv()
@@ -29,8 +30,13 @@ def read_root(req: Request):
     return {"Hello": "World"}
 
 @app.get("/items/{item_id}")
-def read_item(req: Request, item_id: int, q: Union[str, None] = None):
-    return {"item_id": item_id, "q": q}
+def read_item(
+        req: Request,
+        current_user: Annotated[TokenData, Depends(get_current_user)],
+        item_id: int,
+        q: Union[str, None] = None
+    ):
+    return {"item_id": item_id, "q": q, "req_user": current_user}
 
 # runner script for deployment (uses listen port from env)
 if __name__ == "__main__":
