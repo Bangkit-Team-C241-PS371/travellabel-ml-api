@@ -2,10 +2,11 @@ import os
 
 from typing import Annotated, Union
 from contextlib import asynccontextmanager
-from fastapi import Depends, FastAPI, Request
+from fastapi import Depends, FastAPI, Request, Response, status
 from dotenv import load_dotenv
+from pydantic import BaseModel
 
-from model import fake_answer_to_everything_ml_model
+import model
 from auth import TokenData, get_current_user
 
 # load env vars
@@ -18,8 +19,11 @@ ml_models = {}
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Load the ML model
-    ml_models["answer_to_everything"] = fake_answer_to_everything_ml_model
+    model.init()
+    ml_models["recsys_collab"] = model.collab_recommend
+
     yield
+
     # Clean up the ML models and release the resources
     ml_models.clear()
 
@@ -37,6 +41,22 @@ def read_item(
         q: Union[str, None] = None
     ):
     return {"item_id": item_id, "q": q, "req_user": current_user}
+
+class PredictionRequest(BaseModel):
+    place_name: str
+
+@app.post("/predict")
+def predict(
+    res: Response,
+    current_user: Annotated[TokenData, Depends(get_current_user)],
+    req_data: PredictionRequest
+):
+    try:
+        predictions = ml_models["recsys_collab"](req_data.place_name)
+    except LookupError as e:
+        res.status_code = status.HTTP_404_NOT_FOUND
+        return {"status": "Not Found", "message": "Place not found"}
+    return {"status": "OK", "predictions": predictions}
 
 # runner script for deployment (uses listen port from env)
 if __name__ == "__main__":
