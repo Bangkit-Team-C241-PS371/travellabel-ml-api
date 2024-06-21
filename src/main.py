@@ -33,15 +33,6 @@ app = FastAPI(lifespan=lifespan)
 def read_root(req: Request):
     return {"Hello": "World"}
 
-@app.get("/items/{item_id}")
-def read_item(
-        req: Request,
-        current_user: Annotated[TokenData, Depends(get_current_user)],
-        item_id: int,
-        q: Union[str, None] = None
-    ):
-    return {"item_id": item_id, "q": q, "req_user": current_user}
-
 class PredictionRequest(BaseModel):
     place_name: str
 
