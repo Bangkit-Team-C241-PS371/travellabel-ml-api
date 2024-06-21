@@ -6,6 +6,8 @@ This README.md file provides an overview of the application, stack, development 
 
 The TravelLabel Machine Learning API (ML API) is a RESTful API that serves as the backend for the machine learning models of the application. Currently, it handles one model, which is recommending similar destinations accoridng to user input.
 
+This endpoint provides a function for location recommendation according to user input on search bar. The user can send a location name to the API, and the API will return a tourist attractions recommendation. The API uses a pre-trained review and rating model to recommend a suitable destination.
+
 ## Tech Stack
 
 The project utilizes the following technologies and frameworks:
